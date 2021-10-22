@@ -5,6 +5,7 @@ Error="${Red_font_prefix}[错误]${Font_color_suffix}"
 shell_version="1.0.4"
 gost_conf_path="/etc/gost/config.json"
 raw_conf_path="/etc/gost/rawconf"
+
 function checknew() {
   checknew=$(gost -V 2>&1 | awk '{print $2}')
   check_new_ver
@@ -93,8 +94,8 @@ function Install_ct() {
   check_file
   check_sys
   check_new_ver
-  echo -e "国内机器建议使用国内镜像加速下载"
-  read -e -p "是否使用？[y/n]:" addyn
+  echo -e 
+  read -e -p "是否使用国内镜像加速下载？[y/n]:" addyn
   [[ -z ${addyn} ]] && addyn="n"
   if [[ ${addyn} == [Yy] ]]; then
     rm -rf gost-linux-"$bit"-"$ct_new_ver".gz
@@ -119,12 +120,12 @@ function Install_ct() {
   systemctl enable gost && systemctl restart gost
   echo "------------------------------"
   if test -a /usr/bin/gost -a /usr/lib/systemctl/gost.service -a /etc/gost/config.json; then
-    echo "gost安装成功"
+    echo "GOST安装成功"
     rm -rf "$(pwd)"/gost
     rm -rf "$(pwd)"/gost.service
     rm -rf "$(pwd)"/config.json
   else
-    echo "安装失败"
+    echo "GOST安装失败"
     rm -rf "$(pwd)"/gost
     rm -rf "$(pwd)"/gost.service
     rm -rf "$(pwd)"/config.json
@@ -136,7 +137,7 @@ function Uninstall_ct() {
   rm -rf /usr/lib/systemd/system/gost.service
   rm -rf /etc/gost
   rm -rf "$(pwd)"/gost.sh
-  echo "gost已经成功删除"
+  echo "GOST已经成功删除"
 }
 function Start_ct() {
   systemctl start gost
@@ -155,20 +156,15 @@ function read_protocol() {
   echo -e "-----------------------------------"
   echo -e "[1] 不加密tcp+udp流量转发"
   echo -e "-----------------------------------"
-  echo -e "[2] 加密隧道流量转发"
-  echo -e "说明: (1)国内机器安装Gost (2)国外机器安装[3]解密对接"
+  echo -e "[2] 加密隧道流量转发[中转机]"
   echo -e "-----------------------------------"
-  echo -e "[3] 解密由gost传输而来的流量并转发"
-  echo -e "说明: 国外机器解密国内Gost流量"
+  echo -e "[3] GOST解密中转机传输而来的流量并转发[落地机]"
   echo -e "-----------------------------------"
   echo -e "[4] 一键安装ss/socks5代理"
-  echo -e "说明: gost内置的代理协议"
   echo -e "-----------------------------------"
   echo -e "[5] 进阶：多落地均衡负载"
-  echo -e "说明: 支持各种加密方式的简单均衡负载"
   echo -e "-----------------------------------"
   echo -e "[6] 进阶：转发CDN自选节点"
-  echo -e "说明: 仅在中转机设置"
   echo -e "-----------------------------------"
   read -p "请选择: " numprotocol
 
@@ -302,7 +298,7 @@ function read_d_port() {
     read -p "请输入: " flag_d
   elif [[ "$flag_a" == "peer"* ]]; then
     echo -e "------------------------------------------------------------------"
-    echo -e "您要设置的均衡负载策略: "
+    echo -e "设置均衡负载策略: "
     echo -e "-----------------------------------"
     echo -e "[1] round - 轮询"
     echo -e "[2] random - 随机"
@@ -377,7 +373,6 @@ function encrypt() {
   echo -e "[1] tls隧道"
   echo -e "[2] ws隧道"
   echo -e "[3] wss隧道"
-  echo -e "注意: 同一则转发，中转与落地传输类型必须对应！"
   echo -e "-----------------------------------"
   read -p "请选择转发传输类型: " numencrypt
 
@@ -393,17 +388,14 @@ function encrypt() {
   fi
 }
 function enpeer() {
-  echo -e "请问您要设置的均衡负载传输类型: "
+  echo -e "请设置均衡负载传输类型: "
   echo -e "-----------------------------------"
   echo -e "[1] 不加密转发"
   echo -e "[2] tls隧道"
   echo -e "[3] ws隧道"
   echo -e "[4] wss隧道"
-  echo -e "注意: 同一则转发，中转与落地传输类型必须对应！"
-  echo -e "此脚本仅支持简单型均衡负载"
-  echo -e "gost均衡负载官方文档：https://docs.ginuerzh.xyz/gost/load-balancing"
   echo -e "-----------------------------------"
-  read -p "请选择转发传输类型: " numpeer
+  read -p "请选择转发类型: " numpeer
 
   if [ "$numpeer" == "1" ]; then
     flag_a="peerno"
@@ -425,8 +417,6 @@ function cdn() {
   echo -e "[1] 不加密转发"
   echo -e "[2] ws隧道-80"
   echo -e "[3] wss隧道-443"
-  echo -e "注意: 同一则转发，中转与落地传输类型必须对应！"
-  echo -e "此功能只需在中转机设置，落地机若用隧道，流量入口必须是80/443，之后套cdn即可"
   echo -e "-----------------------------------"
   read -p "请选择CDN转发传输类型: " numcdn
 
@@ -442,12 +432,11 @@ function cdn() {
   fi
 }
 function decrypt() {
-  echo -e "请问您要设置的解密传输类型: "
+  echo -e "请设置解密传输类型: "
   echo -e "-----------------------------------"
   echo -e "[1] tls"
   echo -e "[2] ws"
   echo -e "[3] wss"
-  echo -e "注意: 同一则转发，中转与落地传输类型必须对应！"
   echo -e "-----------------------------------"
   read -p "请选择解密传输类型: " numdecrypt
 
@@ -464,7 +453,7 @@ function decrypt() {
 }
 function proxy() {
   echo -e "------------------------------------------------------------------"
-  echo -e "请问您要设置的代理类型: "
+  echo -e "请设置的代理类型: "
   echo -e "-----------------------------------"
   echo -e "[1] shadowsocks"
   echo -e "[2] socks5(强烈建议加隧道用于Telegram代理)"
@@ -708,7 +697,7 @@ function show_all_conf() {
 
 cron_restart() {
   echo -e "------------------------------------------------------------------"
-  echo -e "gost定时重启任务: "
+  echo -e "GOST定时重启任务: "
   echo -e "-----------------------------------"
   echo -e "[1] 配置gost定时重启任务"
   echo -e "[2] 删除gost定时重启任务"
@@ -716,7 +705,7 @@ cron_restart() {
   read -p "请选择: " numcron
   if [ "$numcron" == "1" ]; then
     echo -e "------------------------------------------------------------------"
-    echo -e "gost定时重启任务类型: "
+    echo -e "GOST定时重启任务类型: "
     echo -e "-----------------------------------"
     echo -e "[1] 每？小时重启"
     echo -e "[2] 每日？点重启"
@@ -765,8 +754,8 @@ update_sh() {
 
 }
 
-update_sh
-echo && echo -e "Gost 一键安装配置脚本"${Red_font_prefix}[${shell_version}]${Font_color_suffix}"
+clear
+echo && echo -e "GOST 一键安装配置脚本"${Red_font_prefix}[${shell_version}]${Font_color_suffix}"
 Version: Gost 一键安装配置脚本 V1.0                           
 Website: https://siemenstutorials.pw                      
 Author:  SiemensTutorials                                 
@@ -776,17 +765,17 @@ Youtube: https://www.youtube.com/c/siemenstutorials
       (3)支持中转机加密转发                               
       (4)支持落地机解密对接和转发                         
 
- ${Green_font_prefix}1.${Font_color_suffix} 安装 Gost
- ${Green_font_prefix}2.${Font_color_suffix} 更新 Gost
- ${Green_font_prefix}3.${Font_color_suffix} 卸载 Gost
+ ${Green_font_prefix}1.${Font_color_suffix} 安装 GOST
+ ${Green_font_prefix}2.${Font_color_suffix} 更新 GOST
+ ${Green_font_prefix}3.${Font_color_suffix} 卸载 GOST
 ————————————
- ${Green_font_prefix}4.${Font_color_suffix} 启动 Gost
- ${Green_font_prefix}5.${Font_color_suffix} 停止 Gost
- ${Green_font_prefix}6.${Font_color_suffix} 重启 Gost
+ ${Green_font_prefix}4.${Font_color_suffix} 启动 GOST
+ ${Green_font_prefix}5.${Font_color_suffix} 停止 GOST
+ ${Green_font_prefix}6.${Font_color_suffix} 重启 GOST
 ————————————
- ${Green_font_prefix}7.${Font_color_suffix} 新增Gost转发
- ${Green_font_prefix}8.${Font_color_suffix} 查看Gost转发
- ${Green_font_prefix}9.${Font_color_suffix} 删除Gost转发
+ ${Green_font_prefix}7.${Font_color_suffix} 添加GOST转发
+ ${Green_font_prefix}8.${Font_color_suffix} 查看GOST转发
+ ${Green_font_prefix}9.${Font_color_suffix} 删除GOST转发
 ————————————
  ${Green_font_prefix}10.${Font_color_suffix} Gost定时重启配置
 ————————————" && echo
